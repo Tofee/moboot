@@ -82,6 +82,23 @@ enum topaz_board_types {
 	TOPAZ_END
 };
 
+enum opal_board_types {
+	OPAL_PROTO = 0,
+	OPAL_PROTO2,
+	OPAL_EVT1,
+	OPAL_EVT2,
+	OPAL_EVT3,
+	OPAL_DVT,
+	OPAL_PVT,
+	OPAL3G_PROTO,
+	OPAL3G_PROTO2,
+	OPAL3G_EVT1,
+	OPAL3G_EVT2,
+	OPAL3G_EVT3,
+	OPAL3G_DVT,
+	OPAL3G_PVT
+};
+
 static unsigned board_type = TOPAZ_EVT1;
 
 unsigned board_type_is_3g = 0;
@@ -89,7 +106,7 @@ unsigned board_type_is_3g = 0;
 static struct {
 	enum topaz_board_types type;
 	const char *str;
-} boardtype_tbl[] = {
+} topaz_boardtype_tbl[] = {
 	/* WiFi */
 	{TOPAZ_PROTO,    "topaz-Wifi-proto"},
 	{TOPAZ_PROTO2,   "topaz-Wifi-proto2"},
@@ -134,6 +151,48 @@ static struct {
 	{TOPAZ_END,			"invalid"}
 };
 
+static struct {
+	enum opal_board_types type;
+	const char *str;
+} opal_boardtype_tbl[] = {
+	/* Opal WiFi */
+	{OPAL_PROTO,    "opal-Wifi-proto"},
+	{OPAL_PROTO2,   "opal-Wifi-proto2"},
+	{OPAL_EVT1,     "opal-Wifi-evt1"},
+	{OPAL_EVT2,     "opal-Wifi-evt2"},
+	{OPAL_EVT3,     "opal-Wifi-evt3"},
+	{OPAL_DVT,      "opal-Wifi-dvt"},
+	{OPAL_PVT,      "opal-Wifi-pvt"},
+
+	/* Opal 3G */
+	{OPAL3G_PROTO,    "opal-3G-proto"},
+	{OPAL3G_PROTO2,   "opal-3G-proto2"},
+	{OPAL3G_EVT1,     "opal-3G-evt1"},
+	{OPAL3G_EVT2,     "opal-3G-evt2"},
+	{OPAL3G_EVT3,     "opal-3G-evt3"},
+	{OPAL3G_DVT,      "opal-3G-dvt"},
+	{OPAL3G_PVT,      "opal-3G-pvt"},
+
+	/* OPAL Wifi */
+	{OPAL_PROTO,		"opal-1stbuild-Wifi"},
+	{OPAL_PROTO2,		"opal-2ndbuild-Wifi"},
+	{OPAL_EVT1,			"opal-3rdbuild-Wifi"},
+	{OPAL_EVT2,			"opal-4thbuild-Wifi"},
+	{OPAL_EVT3,			"opal-5thbuild-Wifi"},
+	{OPAL_DVT,			"opal-6thbuild-Wifi"},
+	{OPAL_PVT,			"opal-7thbuild-Wifi"},
+	{OPAL_PVT,			"opal-pvt-Wifi"},
+
+	/* OPAL 3G */
+	{OPAL3G_PROTO,		"opal-1stbuild-3G"},
+	{OPAL3G_PROTO2,		"opal-2ndbuild-3G"},
+	{OPAL3G_EVT1,		"opal-3rdbuild-3G"},
+	{OPAL3G_EVT2,		"opal-4thbuild-3G"},
+	{OPAL3G_EVT3,		"opal-5thbuild-3G"},
+	{OPAL3G_DVT,		"opal-6thbuild-3G"},
+	{OPAL3G_PVT,		"opal-7thbuild-3G"},
+	{OPAL3G_PVT,		"opal-pvt-3G"},
+};
 
 void boardtype_init()
 {
@@ -149,20 +208,23 @@ void boardtype_init()
 
 	boardtype_str += 11;
 
-	for (i = 0; boardtype_tbl[i].type != TOPAZ_END; i++)
-		if (!strcmp(boardtype_str, boardtype_tbl[i].str))
-			board_type = boardtype_tbl[i].type;
+	/* Opal WiFi and 3G versions are both considered "3G" */
 
-	if (board_type >= TOPAZ_3G_PROTO) {
+	if(strncmp(boardtype_str, "opal", strlen("opal")) == 0) {
 		board_type_is_3g = 1;
-	}
+	} else {
+	/* For Topaz models use below logics */
+	for (i = 0; topaz_boardtype_tbl[i].type != TOPAZ_END; i++)
+		if (!strcmp(boardtype_str, topaz_boardtype_tbl[i].str))
+			board_type = topaz_boardtype_tbl[i].type;
 
-	if (!strcmp(boardtype_str, "opal-3G-evt3")) {
-		board_type_is_3g = 1;
-	}
+		if (board_type >= TOPAZ_3G_PROTO) {
+			board_type_is_3g = 1;
+		}
 
-	boardtype_str -= 11;
-	free(boardtype_str);
+		boardtype_str -= 11;
+		free(boardtype_str);
+	}
 }
 
 void target_init(void)
