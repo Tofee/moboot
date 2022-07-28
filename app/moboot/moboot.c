@@ -225,6 +225,7 @@ void moboot_init(const struct app_descriptor *app)
 	char *ptr;
 	int rc;
 	char path[256];
+	char originalPath[256];
 	char *newpath;
 	char *newtitle;
 	char *newname;
@@ -343,6 +344,7 @@ void moboot_init(const struct app_descriptor *app)
 
 	i = 0;
 	counted_images = 0;
+	sprintf(originalPath, "/boot/uImage-2.6.35-palm-tenderloin"); /* make sure originalPath has a value */
 	while ((rc = fs_dirent("/boot", i, &ptr)) > 0) {
 		sprintf(path, "/boot/%s", ptr);
 		if (strncmp("uImage.", ptr, 7) == 0) {
@@ -363,6 +365,10 @@ void moboot_init(const struct app_descriptor *app)
 				set_menu_entry(newtitle, BOOT_FS, newpath, newname);
 				counted_images++;
 			}
+		}
+		else if (strncmp("uImage-2.6.35-palm-", ptr, 19) == 0) {
+			/* we detected the original webOS uImage: store it */
+			sprintf(originalPath, "/boot/%s", ptr);
 		}
 		free(ptr);
 		i++;
@@ -400,7 +406,7 @@ void moboot_init(const struct app_descriptor *app)
 	}
 	
 	if (counted_images == 0) {
-		set_menu_entry("boot", BOOT_FS, "/boot/uImage-2.6.35-palm-tenderloin", "default");
+		set_menu_entry("boot", BOOT_FS, originalPath, "default");
 	}
 
 
