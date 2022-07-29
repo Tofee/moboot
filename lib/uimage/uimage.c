@@ -186,6 +186,8 @@ struct image_header* uimage_multi_image(struct image_header *hdr,
 	for (i = 0; i < index - 1; i++) {
 		skip += ntohl(*(uint32_t *)((char *)hdr + sizeof(struct image_header)
 					+ sizeof(uint32_t) * i));
+		/* align skip on a uint32 boundary */
+		skip = ((skip - 1) | 3) + 1;
 	}
 
 	return ((struct image_header*)((char *)hdr + skip));
@@ -265,9 +267,14 @@ unsigned uimage_check(void *data, unsigned len)
 		int i;
 		int num_images = uimage_multi_count(hdr);
 
+		printf("num_images: %u\n", num_images);
+
 		for (i = 1; i <= num_images; i++) {
 			subhdr = uimage_multi_image(hdr, i);
 			sublen = uimage_multi_size(hdr, i);
+			
+			printf("image %d: subhdr = %p, sublen = %u\n", i, subhdr, sublen);
+			
 			if (rc = uimage_invalid(subhdr, sublen)) {
 				switch(rc) {
 					case UIMAGE_INVALID_MAGIC:
